@@ -31,9 +31,9 @@ class Load extends Phaser.Scene {
     });
 
     // Load assets
-    this.load.audio('oceanSounds', './assets/Sounds/Ocean Sounds.mp3');
-    this.load.audio('Static', './assets/Sounds/Ten Minutes of Static.mp3');
-    this.load.audio('Buzz', './assets/Sounds/Electric Buzz Sound Effect.mp3');
+    this.load.audio('oceanSounds', './assets/Sounds/OceanSounds.mp3');
+    this.load.audio('Static', './assets/Sounds/TenMinutesofStatic.mp3');
+    this.load.audio('Buzz', './assets/Sounds/ElectricBuzzSoundEffect.mp3');
 
     this.load.spritesheet("Water Sheet 1", "./assets/SpriteSheets/Water_Spritesheet.png", {
       frameWidth: 16,
