@@ -126,6 +126,14 @@ class Play extends Phaser.Scene {
       rect.alpha = this.noiseOpacity;
     });
 
+    this.oceanSounds.setVolume(2)
+
+    
+    this.staticSounds.setVolume(0);
+
+    
+    this.buzzSounds.setVolume(0);
+
     // Resetting camera effects
     this.cameras.main.postFX.clear();
   }
