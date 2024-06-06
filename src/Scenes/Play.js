@@ -24,9 +24,11 @@ class Play extends Phaser.Scene {
 
     this.staticSounds = this.sound.add('Static', {loop: true});
     this.staticSounds.play();
+    this.staticSounds.setVolume(0);
 
     this.buzzSounds = this.sound.add('Buzz', {loop: true});
     this.buzzSounds.play();
+    this.buzzSounds.setVolume(0);
 
     const numRows = Math.ceil(h / 16) + 2;
     const numCols = Math.ceil(w / 16) + 2;
