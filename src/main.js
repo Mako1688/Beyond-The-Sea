@@ -15,7 +15,7 @@ let config = {
   width: 640,
   height: 640,
   pixelArt: true,
-  mode: Phaser.Scale.LANDSCAPE,
+  mode: Phaser.Scale.FIT,
   scale: {
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },

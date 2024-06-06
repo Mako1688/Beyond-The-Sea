@@ -6,10 +6,34 @@ class Load extends Phaser.Scene {
   init() {}
 
   preload() {
-    // load sounds
-    this.load.audio('oceanSounds', './assets/Sounds/Ocean Sounds.mp3')
-    this.load.audio('Static', './assets/Sounds/Ten Minutes of Static.mp3')
-    this.load.audio('Buzz', './assets/Sounds/Electric Buzz Sound Effect.mp3')
+    // Create loading bar graphics
+    const { width, height } = this.cameras.main;
+    const loadingBarWidth = 400;
+    const loadingBarHeight = 20;
+
+    const loadingBarBackground = this.add.graphics();
+    loadingBarBackground.fillStyle(0x222222, 0.8);
+    loadingBarBackground.fillRect((width - loadingBarWidth) / 2, (height - loadingBarHeight) / 2, loadingBarWidth, loadingBarHeight);
+
+    const loadingBar = this.add.graphics();
+
+    // Update the loading bar as assets load
+    this.load.on('progress', (value) => {
+      loadingBar.clear();
+      loadingBar.fillStyle(0xffffff, 1);
+      loadingBar.fillRect((width - loadingBarWidth) / 2, (height - loadingBarHeight) / 2, loadingBarWidth * value, loadingBarHeight);
+    });
+
+    // Clean up once loading is complete
+    this.load.on('complete', () => {
+      loadingBar.destroy();
+      loadingBarBackground.destroy();
+    });
+
+    // Load assets
+    this.load.audio('oceanSounds', './assets/Sounds/Ocean Sounds.mp3');
+    this.load.audio('Static', './assets/Sounds/Ten Minutes of Static.mp3');
+    this.load.audio('Buzz', './assets/Sounds/Electric Buzz Sound Effect.mp3');
 
     this.load.spritesheet("Water Sheet 1", "./assets/SpriteSheets/Water_Spritesheet.png", {
       frameWidth: 16,
@@ -30,11 +54,11 @@ class Load extends Phaser.Scene {
       frameHeight: 64,
       startFrame: 0,
       endFrame: 12
-    })
+    });
   }
 
   create() {
-    //create animations
+    // Create animations
     this.anims.create({
       key: "shimmer 1",
       frames: this.anims.generateFrameNumbers("Water Sheet 1", {
@@ -81,6 +105,6 @@ class Load extends Phaser.Scene {
   }
 
   update() {
-    this.scene.start("titleScene")
+    this.scene.start("titleScene");
   }
 }

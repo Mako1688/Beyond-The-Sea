@@ -9,13 +9,15 @@ class Play extends Phaser.Scene {
     this.noiseOpacity = 0; // Initial noise opacity
     this.cumulativeNorthSouthDistance = 0; // Cumulative distance moved north or south
     this.pixelateEffect = null; // Pixelation effect reference
-
+    this.barrelEffect = null; // Barrel distortion effect reference
+    this.blurEffect = null; // Blur effect reference
+    this.staticVolumeRatio = 0; // Initial static sound volume ratio
+    this.buzzSoundRatio = 0; // Initial buzz sound volume ratio
   }
 
   preload() {}
 
   create() {
-
     // Add ocean sounds and play them on loop
     this.oceanSounds = this.sound.add('oceanSounds', { loop: true });
     this.oceanSounds.play();
@@ -81,6 +83,51 @@ class Play extends Phaser.Scene {
 
     // Add the compass container to the scene
     this.add.existing(this.compassContainer);
+
+    // Add reset functionality on 'R' key press
+    this.input.keyboard.on('keydown-R', () => {
+      this.resetGame();
+    });
+
+    // Add reset text
+    this.resetText = this.add.text(w / 2, h - 60, 'Press R to reset', {
+      fontFamily: 'Georgia, serif',
+      fontSize: '16px',
+      color: '#ffffff',
+      align: 'center'
+    }).setOrigin(0.5);
+  }
+
+  resetGame() {
+    // Resetting variables
+    this.cumulativeEastWestDistance = 0;
+    this.noiseOpacity = 0;
+    this.cumulativeNorthSouthDistance = 0;
+    this.pixelateEffect = null;
+    this.barrelEffect = null;
+    this.blurEffect = null;
+    this.staticVolumeRatio = 0;
+    this.buzzSoundRatio = 0;
+
+    // Resetting boat position and state
+    this.boat.setPosition(w / 2, h / 2);
+    this.boat.setVelocity(0, 0);
+    this.boat.setAcceleration(0);
+    this.boat.angle = 180;
+
+    // Resetting water tiles position
+    this.waterGroup.children.iterate((waterTile) => {
+      waterTile.x = waterTile.initialX;
+      waterTile.y = waterTile.initialY;
+    });
+
+    // Resetting noise grid
+    this.noiseGrid.forEach(rect => {
+      rect.alpha = this.noiseOpacity;
+    });
+
+    // Resetting camera effects
+    this.cameras.main.postFX.clear();
   }
 
   createNoiseGrid(resolution) {
@@ -103,38 +150,36 @@ class Play extends Phaser.Scene {
     const textStyles = ['#ffffff', '#ffffff', '#ffffff', '#ffffff']; // Initial colors for each direction
 
     directions.forEach((direction, index) => {
-        const textConfig = {
-            x: 50,
-            y: 50 + index * 20, // Adjust Y position for each direction
-            text: direction,
-            style: {
-                fontFamily: 'Arial',
-                fontSize: '16px',
-                color: textStyles[index],
-                align: 'center'
-            }
-        };
-        const compassText = this.make.text(textConfig);
-        compassText.setOrigin(0.5);
-        this.compassContainer.add(compassText);
+      const textConfig = {
+        x: 50,
+        y: 50 + index * 20, // Adjust Y position for each direction
+        text: direction,
+        style: {
+          fontFamily: 'Georgia, serif',
+          fontSize: '16px',
+          color: textStyles[index],
+          align: 'center'
+        }
+      };
+      const compassText = this.make.text(textConfig);
+      compassText.setOrigin(0.5);
+      this.compassContainer.add(compassText);
     });
   }
 
   update(time, delta) {
     // Adjust audio based on westward movement
     // Calculate the ratio of static sound volume to max volume based on noise opacity
-    if(this.noiseOpacity != 1){
+    if (this.noiseOpacity != 1) {
       this.staticVolumeRatio = this.noiseOpacity * 0.5;
     } else {
       this.staticVolumeRatio = .5;
     }
-    
+
     // Set the volume of static sound to be proportional to the noise opacity
     this.staticSounds.setVolume(this.staticVolumeRatio);
 
     this.oceanSounds.setVolume(2 - (this.staticVolumeRatio * 0.5));
-
-
 
     if (this.cursors.left.isDown) {
       this.boat.setAngularVelocity(-this.ANG_VELOCITY);
@@ -154,11 +199,15 @@ class Play extends Phaser.Scene {
 
     const boatVelocity = this.boat.body.velocity;
 
-    if(boatVelocity.y > 0) {
-      this.oceanSounds.setDetune(-this.cumulativeNorthSouthDistance)
-    } else if(boatVelocity.y < 0) {
-      this.oceanSounds.setDetune(-this.cumulativeNorthSouthDistance)
+    if (boatVelocity.y > 0) {
+      this.oceanSounds.setDetune(-this.cumulativeNorthSouthDistance);
+    } else if (boatVelocity.y < 0) {
+      this.oceanSounds.setDetune(-this.cumulativeNorthSouthDistance);
     }
+
+    // Update the position of the reset text to follow the camera
+    this.resetText.x = this.cameras.main.scrollX + w / 2;
+    this.resetText.y = this.cameras.main.scrollY + h - 60;
 
     this.waterGroup.children.iterate((waterTile) => {
       waterTile.x -= boatVelocity.x * delta / 1000;
@@ -217,7 +266,6 @@ class Play extends Phaser.Scene {
     const maxBarrelAmount = 3; // Maximum barrel distortion amount
     const maxBarrelDistance = -1500; // Maximum cumulative distance for full distortion
 
-
     const barrelAmount = Phaser.Math.Clamp(this.cumulativeNorthSouthDistance / maxBarrelDistance * maxBarrelAmount, 1, maxBarrelAmount);
 
     if (barrelAmount > 0) {
@@ -262,11 +310,11 @@ class Play extends Phaser.Scene {
     console.log(`Blur Strength: ${blurPercentage.toFixed(2)}%`);
 
     // Calculate the ratio of static sound volume to max volume based on noise opacity
-    if(blurPercentage > 1){
-      this.buzzSoundRatio = blurPercentage / 100
+    if (blurPercentage > 1) {
+      this.buzzSoundRatio = blurPercentage / 100;
       this.oceanSounds.setVolume(2 - (this.buzzSoundRatio * 2));
-      this.buzzSounds.setVolume(this.buzzSoundRatio)
-    } 
+      this.buzzSounds.setVolume(this.buzzSoundRatio);
+    }
 
     this.adjustNoiseOpacity();
     this.adjustNoiseGridPosition();
@@ -331,23 +379,22 @@ class Play extends Phaser.Scene {
     // Determine the cardinal direction based on boat's rotation
     let cardinalDirection = '';
     if (Math.abs(boatDirection) < Math.PI / 4) {
-        cardinalDirection = 'S'; // South
+      cardinalDirection = 'S'; // South
     } else if (Math.abs(boatDirection) > 3 * Math.PI / 4) {
-        cardinalDirection = 'N'; // North
+      cardinalDirection = 'N'; // North
     } else if (boatDirection > 0) {
-        cardinalDirection = 'W'; // West
+      cardinalDirection = 'W'; // West
     } else {
-        cardinalDirection = 'E'; // East
+      cardinalDirection = 'E'; // East
     }
 
     // Set text style color based on cardinal direction
     this.compassContainer.iterate((text) => {
-        if (text.text === cardinalDirection) {
-            text.setFill('#ff0000'); // Red color for cardinal direction
-        } else {
-            text.setFill('#ffffff'); // White color for other directions
-        }
+      if (text.text === cardinalDirection) {
+        text.setFill('#ff0000'); // Red color for cardinal direction
+      } else {
+        text.setFill('#ffffff'); // White color for other directions
+      }
     });
   }
-
 }
