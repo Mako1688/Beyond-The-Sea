@@ -21,6 +21,7 @@ class Play extends Phaser.Scene {
     // Add ocean sounds and play them on loop
     this.oceanSounds = this.sound.add('oceanSounds', { loop: true });
     this.oceanSounds.play();
+    this.oceanSounds.setDetune(0)
 
     this.staticSounds = this.sound.add('Static', {loop: true});
     this.staticSounds.play();
@@ -135,6 +136,8 @@ class Play extends Phaser.Scene {
 
     
     this.buzzSounds.setVolume(0);
+
+    this.oceanSounds.setDetune(0);
 
     // Resetting camera effects
     this.cameras.main.postFX.clear();
